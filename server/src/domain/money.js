@@ -1,4 +1,4 @@
- export function poundsToPence(value) {
+export function poundsToPence(value) {
   if (typeof value === "number") {
     if (!Number.isFinite(value) || value < 0) throw new TypeError("Price must be a non-negative number or decimal string");
     value = value.toString();
@@ -11,9 +11,9 @@
 }
 
 export function penceToPounds(pence) {
-  return (pence / 100).toFixed(2);
+  return Number((pence / 100).toFixed(2));
 }
 
 export function roundFractionToPence(numerator, denominator) {
-  return Math.round(numerator / denominator);
+  return Math.floor((numerator * 2 + denominator) / (2 * denominator));
 }

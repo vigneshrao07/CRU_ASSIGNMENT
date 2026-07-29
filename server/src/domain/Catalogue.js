@@ -24,6 +24,10 @@ export class Catalogue {
     return this.#products.has(name);
   }
 
+  get products() {
+    return Object.fromEntries(this.#products);
+  }
+
   get size() {
     return this.#products.size;
   }

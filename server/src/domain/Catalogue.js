@@ -1,13 +1,18 @@
-import { poundsToPence, penceToPounds } from "./money.js";
+ import { poundsToPence, penceToPounds } from "./money.js";
 
 export class Catalogue {
   #products = new Map();
 
   addProduct(name, price) {
     this.#products.set(name, poundsToPence(price));
+    return this;
   }
 
   getPricePence(name) {
+    if (!this.#products.has(name)) {
+      throw new Error(`Product '${name}' is not in the catalogue`);
+    }
+
     return this.#products.get(name);
   }
 

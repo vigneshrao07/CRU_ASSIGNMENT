@@ -9,26 +9,12 @@ export class Catalogue {
   }
 
   getPricePence(name) {
-    if (!this.#products.has(name)) {
-      throw new Error(`Product '${name}' is not in the catalogue`);
-    }
-
+    if (!this.#products.has(name)) throw new Error(`Product '${name}' is not in the catalogue`);
     return this.#products.get(name);
   }
 
-  getPrice(name) {
-    return penceToPounds(this.getPricePence(name));
-  }
-
-  hasProduct(name) {
-    return this.#products.has(name);
-  }
-
-  get products() {
-    return Object.fromEntries(this.#products);
-  }
-
-  get size() {
-    return this.#products.size;
-  }
+  getPrice(name) { return penceToPounds(this.getPricePence(name)); }
+  hasProduct(name) { return this.#products.has(name); }
+  get products() { return Object.fromEntries([...this.#products].map(([name, pence]) => [name, penceToPounds(pence)])); }
+  get size() { return this.#products.size; }
 }

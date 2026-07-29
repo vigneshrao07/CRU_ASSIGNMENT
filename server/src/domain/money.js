@@ -1,4 +1,4 @@
-export function poundsToPence(value) {
+ export function poundsToPence(value) {
   if (typeof value === "number") {
     if (!Number.isFinite(value) || value < 0) {
       throw new TypeError("Price must be a non-negative number or decimal string");
@@ -11,7 +11,7 @@ export function poundsToPence(value) {
   }
 
   const [whole, fraction = ""] = value.split(".");
-  return Number(whole) * 100 + Number(fraction);
+  return Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
 }
 
 export function penceToPounds(pence) {

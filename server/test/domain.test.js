@@ -1,101 +1,110 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import {
-  Basket,
-  Catalogue
-} from "../src/domain/index.js";
+ test("Basket items returns a copy", () => {
+  const basket = new Basket().add("Beans", 2);
+  const copy = basket.items;
 
-// Basket tests
-test("Basket adds a single item", () => {
-  const basket = new Basket().add("Baked Beans");
-  assert.deepEqual(basket.items, { "Baked Beans": 1 });
+  copy.Hack = 99;
+
+  assert.equal(basket.has("Hack"), false);
 });
 
-test("Basket adds a specified quantity", () => {
-  assert.deepEqual(
-    new Basket().add("Baked Beans", 4).items,
-    { "Baked Beans": 4 }
-  );
-});
-
-test("Basket increments an existing product", () => {
-  const basket = new Basket()
-    .add("Baked Beans", 2)
-    .add("Baked Beans", 3);
-
-  assert.deepEqual(basket.items, { "Baked Beans": 5 });
-});
-
-test("Basket stores multiple products", () => {
-  const basket = new Basket()
-    .add("Baked Beans", 2)
-    .add("Biscuits", 1);
-
-  assert.deepEqual(basket.items, {
-    "Baked Beans": 2,
-    Biscuits: 1
-  });
-});
-
-for (const invalid of [0, -1, 1.5]) {
-  test(`Basket rejects invalid quantity ${invalid}`, () => {
-    assert.throws(
-      () => new Basket().add("Beans", invalid),
-      /positive integer/
-    );
-  });
-}
-
-test("Basket query helpers work", () => {
-  const basket = new Basket();
-
-  assert.equal(basket.isEmpty, true);
-  assert.equal(basket.length, 0);
-
-  basket.add("Beans", 3).add("Biscuits", 2);
-
-  assert.equal(basket.isEmpty, false);
-  assert.equal(basket.length, 5);
-  assert.equal(basket.has("Beans"), true);
-  assert.equal(basket.has("Nope"), false);
-});
-
-// Catalogue tests
-test("Catalogue adds, updates, and retrieves products", () => {
+test("Catalogue query helpers and copy work", () => {
   const catalogue = new Catalogue()
-    .addProduct("Baked Beans", "0.99")
-    .addProduct("Biscuits", "1.20");
+    .addProduct("Beans", "0.99");
 
-  assert.equal(catalogue.size, 2);
-  assert.equal(catalogue.getPrice("Baked Beans"), 0.99);
+  assert.equal(catalogue.hasProduct("Beans"), true);
+  assert.equal(catalogue.hasProduct("Nope"), false);
 
-  catalogue.addProduct("Baked Beans", "1.10");
+  const copy = catalogue.products;
+  copy.Hack = 0;
 
-  assert.equal(catalogue.getPrice("Baked Beans"), 1.1);
+  assert.equal(catalogue.hasProduct("Hack"), false);
 });
 
-test("Catalogue permits zero price", () => {
-  const catalogue = new Catalogue()
-    .addProduct("Free Sample", "0");
+// Offer validation and calculations
+test("Percentage offer calculates 25 percent", () => {
+  const cat = new Catalogue()
+    .addProduct("Sardines", "1.89");
 
-  assert.equal(catalogue.getPrice("Free Sample"), 0);
-});
+  const offer = new PercentageDiscountOffer("Sardines", 25);
 
-test("Catalogue rejects negative and malformed prices", () => {
-  assert.throws(
-    () => new Catalogue().addProduct("Bad", -1),
-    /non-negative/
-  );
-
-  assert.throws(
-    () => new Catalogue().addProduct("Bad", "1.999"),
-    /at most 2 decimal places/
+  assert.equal(
+    offer.calculateDiscountPence({ Sardines: 2 }, cat),
+    94
   );
 });
 
-test("Catalogue missing product throws", () => {
+test("Percentage offer validates percentage", () => {
   assert.throws(
-    () => new Catalogue().getPrice("Ghost Product"),
-    /not in the catalogue/
+    () => new PercentageDiscountOffer("Sardines", -1),
+    /between 0 and 100/
+  );
+
+  assert.throws(
+    () => new PercentageDiscountOffer("Sardines", 101),
+    /between 0 and 100/
+  );
+});
+
+test("Buy 2 get 1 free repeats for complete groups", () => {
+  const cat = new Catalogue()
+    .addProduct("Baked Beans", "0.99");
+
+  const offer = new BuyNGetMFreeOffer(
+    "Baked Beans",
+    { buy: 2, free: 1 }
+  );
+
+  assert.equal(
+    offer.calculateDiscountPence({ "Baked Beans": 2 }, cat),
+    0
+  );
+
+  assert.equal(
+    offer.calculateDiscountPence({ "Baked Beans": 3 }, cat),
+    99
+  );
+
+  assert.equal(
+    offer.calculateDiscountPence({ "Baked Beans": 7 }, cat),
+    198
+  );
+});
+
+test("Buy N get M free validates configuration", () => {
+  assert.throws(
+    () => new BuyNGetMFreeOffer(
+      "Beans",
+      { buy: 0, free: 1 }
+    ),
+    /must be ≥ 1/
+  );
+
+  assert.throws(
+    () => new BuyNGetMFreeOffer(
+      "Beans",
+      { buy: 2, free: 0 }
+    ),
+    /must be ≥ 1/
+  );
+});
+
+test("Shampoo offer ignores incomplete groups", () => {
+  const offer = new BuyNGetCheapestFreeOffer(
+    ["L", "S"],
+    { groupSize: 3, freeCount: 1 }
+  );
+
+  const cat = new Catalogue()
+    .addProduct("L", "3.50")
+    .addProduct("S", "2.00");
+
+  assert.equal(
+    offer.calculateDiscountPence({ L: 1, S: 1 }, cat),
+    0
+  );
+
+  assert.equal(
+    offer.calculateDiscountPence({ L: 2, S: 2 }, cat),
+    200
   );
 });

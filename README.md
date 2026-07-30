@@ -1,4 +1,4 @@
- # Shopping Basket Pricer — Node.js, Express and React
+ # Shopping Basket Pricer 
  A full-stack Node.js shopping basket application developed , featuring reusable pricing logic, promotional offer handling, automated tests, an Express API, and a React-based user interface.
 
 

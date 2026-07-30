@@ -13,8 +13,8 @@ export function createCatalogue() {
 
 export function createOffers() {
   return [
-    new BuyNGetMFreeOffer("Baked Beans", { buy: 2, free: 2 }),
-    new PercentageDiscountOffer("Sardines", 20),
+    new BuyNGetMFreeOffer("Baked Beans", { buy: 2, free: 1 }),
+    new PercentageDiscountOffer("Sardines", 25),
     new BuyNGetCheapestFreeOffer(
       ["Shampoo (Small)", "Shampoo (Medium)", "Shampoo (Large)"],
       { groupSize: 3, freeCount: 1 }

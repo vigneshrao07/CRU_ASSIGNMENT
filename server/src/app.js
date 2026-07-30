@@ -1,11 +1,14 @@
  import express from "express";
 import cors from "cors";
+import { Basket } from "./domain/Basket.js";
+import { BasketPricer } from "./domain/BasketPricer.js";
 import { createCatalogue, createOffers } from "./config/shop.js";
 
 export function createApp() {
   const app = express();
   const catalogue = createCatalogue();
   const offers = createOffers();
+  const pricer = new BasketPricer();
 
   app.use(cors());
   app.use(express.json());
@@ -29,11 +32,25 @@ export function createApp() {
       },
       {
         type: "BUY_N_GET_CHEAPEST_FREE",
-        products: ["Shampoo (Small)", "Shampoo (Medium)"],
+        products: [
+          "Shampoo (Small)",
+          "Shampoo (Medium)",
+          "Shampoo (Large)"
+        ],
         groupSize: 3,
         freeCount: 1
       }
     ]);
+  });
+
+  app.post("/api/price-basket", (req, res) => {
+    const basket = new Basket();
+
+    for (const [product, quantity] of Object.entries(req.body.basket)) {
+      basket.add(product, quantity);
+    }
+
+    res.json(pricer.price(basket, catalogue, offers));
   });
 
   return app;

@@ -1,7 +1,7 @@
-import { penceToPounds } from "./money.js";
+ import { penceToPounds } from "./money.js";
 
 export class BasketPricer {
-  price(basket, catalogue, offers) {
+  price(basket, catalogue, offers = []) {
     const items = basket.items;
     let subTotalPence = 0;
 
@@ -15,7 +15,7 @@ export class BasketPricer {
       subTotalPence += catalogue.getPricePence(product) * quantity;
     }
 
-    const discountPence = offers.reduce(
+    const discountPence = (offers ?? []).reduce(
       (sum, offer) =>
         sum + offer.calculateDiscountPence(items, catalogue),
       0

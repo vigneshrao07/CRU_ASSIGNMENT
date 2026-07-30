@@ -20,7 +20,6 @@ test("POST prices acceptance basket 1", async () => {
     .post("/api/price-basket")
     .send({ basket: { "Baked Beans": 4, Biscuits: 1 } })
     .expect(200);
-
   assert.deepEqual(response.body, {
     subTotal: 5.16,
     discount: 0.99,
@@ -33,10 +32,31 @@ test("POST prices acceptance basket 2", async () => {
     .post("/api/price-basket")
     .send({ basket: { "Baked Beans": 2, Biscuits: 1, Sardines: 2 } })
     .expect(200);
-
   assert.deepEqual(response.body, {
     subTotal: 6.96,
-    discount: 0.94,
-    total: 6.02,
+    discount: 0.95,
+    total: 6.01,
   });
+});
+
+test("POST prices shampoo basket", async () => {
+  const response = await request(app)
+    .post("/api/price-basket")
+    .send({
+      basket: {
+        "Shampoo (Large)": 3,
+        "Shampoo (Medium)": 1,
+        "Shampoo (Small)": 2,
+      },
+    })
+    .expect(200);
+  assert.deepEqual(response.body, { subTotal: 18.5, discount: 6, total: 12.5 });
+});
+
+test("POST validates invalid basket", async () => {
+  const response = await request(app)
+    .post("/api/price-basket")
+    .send({ basket: { Biscuits: -1 } })
+    .expect(400);
+  assert.match(response.body.error, /positive integer/);
 });

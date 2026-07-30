@@ -1,12 +1,16 @@
-import { roundFractionToPence } from "./money.js";
+ import { roundFractionToPence } from "./money.js";
 
 export class Offer {
   constructor(applicableProducts) {
-    this.applicableProducts = applicableProducts;
+    if (!applicableProducts || applicableProducts.length === 0) {
+      throw new Error("An offer must apply to at least one product");
+    }
+
+    this.applicableProducts = Object.freeze([...new Set(applicableProducts)]);
   }
 
   calculateDiscountPence() {
-    return 0;
+    throw new Error("calculateDiscountPence must be implemented");
   }
 }
 
@@ -28,7 +32,44 @@ export class PercentageDiscountOffer extends Offer {
       return 0;
     }
 
-    const price = catalogue.getPricePence(this.product);
-    return Math.round((price * quantity * this.percentage) / 100);
+    const numerator =
+      catalogue.getPricePence(this.product) *
+      quantity *
+      this.percentage;
+
+    return roundFractionToPence(numerator, 100);
+  }
+}
+
+export class BuyNGetMFreeOffer extends Offer {
+  constructor(product, { buy, free }) {
+    if (!Number.isInteger(buy) || buy < 1) {
+      throw new Error(`'buy' must be ≥ 1, got ${buy}`);
+    }
+
+    if (!Number.isInteger(free) || free < 1) {
+      throw new Error(`'free' must be ≥ 1, got ${free}`);
+    }
+
+    super([product]);
+    this.product = product;
+    this.buy = buy;
+    this.free = free;
+  }
+
+  calculateDiscountPence(items, catalogue) {
+    const quantity = items[this.product] ?? 0;
+
+    if (quantity === 0 || !catalogue.hasProduct(this.product)) {
+      return 0;
+    }
+
+    const completeGroups = Math.floor(quantity / this.buy);
+
+    return (
+      completeGroups *
+      this.free *
+      catalogue.getPricePence(this.product)
+    );
   }
 }

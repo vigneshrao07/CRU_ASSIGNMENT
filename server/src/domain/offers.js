@@ -64,12 +64,65 @@ export class BuyNGetMFreeOffer extends Offer {
       return 0;
     }
 
-    const completeGroups = Math.floor(quantity / this.buy);
+    const groupSize = this.buy + this.free;
+    const completeGroups = Math.floor(quantity / groupSize);
 
     return (
       completeGroups *
       this.free *
       catalogue.getPricePence(this.product)
     );
+  }
+}
+
+export class BuyNGetCheapestFreeOffer extends Offer {
+  constructor(products, { groupSize, freeCount }) {
+    if (!Number.isInteger(groupSize) || groupSize < 2) {
+      throw new Error(`'groupSize' must be ≥ 2, got ${groupSize}`);
+    }
+
+    if (!Number.isInteger(freeCount) || freeCount < 1) {
+      throw new Error(`'freeCount' must be ≥ 1, got ${freeCount}`);
+    }
+
+    if (freeCount >= groupSize) {
+      throw new Error(
+        `'freeCount' (${freeCount}) must be less than 'groupSize' (${groupSize})`
+      );
+    }
+
+    super(products);
+    this.groupSize = groupSize;
+    this.freeCount = freeCount;
+  }
+
+  calculateDiscountPence(items, catalogue) {
+    const prices = [];
+
+    for (const product of this.applicableProducts) {
+      const quantity = items[product] ?? 0;
+
+      if (quantity > 0 && catalogue.hasProduct(product)) {
+        prices.push(
+          ...Array(quantity).fill(catalogue.getPricePence(product))
+        );
+      }
+    }
+
+    prices.sort((a, b) => a - b);
+
+    let discount = 0;
+    const completeGroups = Math.floor(prices.length / this.groupSize);
+
+    for (let groupIndex = 0; groupIndex < completeGroups; groupIndex += 1) {
+      const start = groupIndex * this.groupSize;
+      const group = prices.slice(start, start + this.groupSize);
+
+      discount += group
+        .slice(-this.freeCount)
+        .reduce((sum, price) => sum + price, 0);
+    }
+
+    return discount;
   }
 }

@@ -23,7 +23,20 @@ test("POST prices acceptance basket 1", async () => {
 
   assert.deepEqual(response.body, {
     subTotal: 5.16,
-    discount: 1.98,
-    total: 3.18,
+    discount: 0.99,
+    total: 4.17,
+  });
+});
+
+test("POST prices acceptance basket 2", async () => {
+  const response = await request(app)
+    .post("/api/price-basket")
+    .send({ basket: { "Baked Beans": 2, Biscuits: 1, Sardines: 2 } })
+    .expect(200);
+
+  assert.deepEqual(response.body, {
+    subTotal: 6.96,
+    discount: 0.94,
+    total: 6.02,
   });
 });

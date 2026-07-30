@@ -1,8 +1,13 @@
-export class Basket {
+ export class Basket {
   #items = new Map();
 
   add(productName, quantity = 1) {
-    this.#items.set(productName, quantity);
+    this.#items.set(
+      productName,
+      (this.#items.get(productName) ?? 0) + quantity
+    );
+
+    return this;
   }
 
   get items() {
